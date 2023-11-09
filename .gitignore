@@ -3,3 +3,6 @@
 
 # Output files
 *.out
+
+# Swap files
+*.swp
