@@ -49,6 +49,7 @@ int P_Box[P_BOX_INPUT][P_BOX_INPUT] = {
 	{0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0},
 	{0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0}
 };
+
 //For testing purposes
 void printBinary(short int num) {
     int bits = sizeof(num) * 8; // Calculate the number of bits in a short int
