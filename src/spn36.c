@@ -1,6 +1,7 @@
 // 30bit inpput 15 bit output SPN implementation
 #include <stdio.h>
 #include <stdint.h>
+#include <time.h>
 #include "spn36.h"
 
 #define S_BOX_INPUT_SIZE 30
@@ -36,18 +37,15 @@ uint16_t selectBox(uint16_t left, uint16_t key){
 	uint16_t s_box_output = 0;
 	//TO-DO Check the result is correct
 	for(int i=S_BOX_OUTPUT_SIZE-1;i>=0;i--){
-		uint32_t s_box_line = S_BOX[i];
 		uint8_t cur_out = 0;
 		s_box_output = s_box_output << 1;
-		for(int j=0;j<S_BOX_INPUT_SIZE;j++){
+		for(int j=0;j<5;j++){
 			//Selected bit for XOR
-			if(isBitSet(s_box_line,j)){
-				if(isBitSet(input_to_xor,j)){
-					cur_out = cur_out ^ 1;
-				}
-				else{
-					cur_out = cur_out ^ 0;
-				}
+			if(isBitSet(input_to_xor,S_BOX[i][j])){
+				cur_out = cur_out ^ 1;
+			}
+			else{
+				cur_out = cur_out ^ 0;
 			}
 		}
 		s_box_output = s_box_output + cur_out;
@@ -58,19 +56,15 @@ uint16_t selectBox(uint16_t left, uint16_t key){
 uint16_t permutationBox(uint16_t s_box_output){
 	uint16_t p_box_output = 0;
 	
-	for(int i=S_BOX_OUTPUT_SIZE-1;i>=0;i--){
-		p_box_output = p_box_output << 1;
-		for(int j=0;j<S_BOX_OUTPUT_SIZE;j++){
-			if(P_BOX[j]==i){
-				if(isBitSet(s_box_output,j)){
-					p_box_output = p_box_output + 1;
-				}
-				break;
-			}
-		}
+	for(int i=0; i<S_BOX_OUTPUT_SIZE; i++){
+		uint16_t permutadedPlace = P_BOX[i];
+		uint16_t value = isBitSet(s_box_output,i);
+		value = value << permutadedPlace;
+		p_box_output+=value;
 	}
 	return p_box_output;
 }
+
 uint16_t roundFunction(uint16_t left,uint16_t key){
 	uint16_t p_box_output = selectBox(left,key);
 	return permutationBox(p_box_output);
@@ -104,16 +98,24 @@ md_addr_t encryptCacheLineAddr(md_addr_t cache_line_to_encrypt, uint64_t encrypt
 }
 
 int main(){
+	clock_t start, end;
+	double cpu_time_used;
 	srand(time(NULL));
 	uint64_t key = rand();  
 	
 	md_addr_t line = 0b110011000100001010011001111011110100;
 	
-	for(int i=0;i<100;i++){
+	start = clock();
+	for(int i=0;i<10000000;i++){
 		md_addr_t enc_line = encryptCacheLineAddr(0b110011000100001010011011111011110100,key);
-		
-		printf("Line: %llu\n",line);
-		printf("Encr: %llu\n",enc_line);
-		key = rand();
+		//printf("Line: %llu\n",line);
+		//printf("Encr: %llu\n",enc_line);
+		//key = rand();
 	}
+	end = clock();
+	// Calculate the time taken in seconds
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+    // Print the time taken
+    printf("Time taken: %f seconds\n", cpu_time_used);
 }
